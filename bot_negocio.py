@@ -40,7 +40,7 @@ def responder_cliente():
             "------------------------------------------\n"
             f"🕒 *Marca de tiempo:* {hora_actual}"
         )
-        return jsonify({"replies": [{"text": texto_respuesta}]})
+        return jsonify({"replies": [{"message": texto_respuesta}]})
 
     elif mensaje_cliente == "1":
         texto_respuesta = (
@@ -51,7 +51,7 @@ def responder_cliente():
             "------------------------------------------\n"
             f"📟 *Sesión:* {telefono} | {hora_actual}"
         )
-        return jsonify({"replies": [{"text": texto_respuesta}]})
+        return jsonify({"replies": [{"message": texto_respuesta}]})
 
     elif mensaje_cliente == "2":
         texto_respuesta = (
@@ -63,7 +63,7 @@ def responder_cliente():
             "------------------------------------------\n"
             "Si deseas realizar un pedido, marca la opción *4* para comunicarte con un asesor."
         )
-        return jsonify({"replies": [{"text": texto_respuesta}]})
+        return jsonify({"replies": [{"message": texto_respuesta}]})
 
     elif mensaje_cliente == "3":
         texto_respuesta = (
@@ -75,7 +75,7 @@ def responder_cliente():
             "------------------------------------------\n"
             "¡Te esperamos en tienda!"
         )
-        return jsonify({"replies": [{"text": texto_respuesta}]})
+        return jsonify({"replies": [{"message": texto_respuesta}]})
 
     elif mensaje_cliente == "4":
         texto_respuesta = (
@@ -91,35 +91,4 @@ def responder_cliente():
             f"⚠️ [ALERTA DE ATENCIÓN EN WHATSAPP]\n"
             f"👤 CLIENTE: {telefono}\n"
             f"⚡ ESTADO: Solicita hablar con humano.\n"
-            f"🕒 HORA: {hora_actual}"
-        )
-        enviar_a_telegram(alerta_dueno)
-        return jsonify({"replies": [{"text": texto_respuesta}]})
-    
-    # 📜 OPCIÓN 5: ENVIAR LA CARTA EN FORMATO IMAGEN REQUERIDO POR AUTORESPONDER
-    elif mensaje_cliente == "5":
-        return jsonify({
-            "replies": [
-                {
-                    "text": (
-                        "📜 *[ENVÍO DE CARTA COMPLETA]*\n"
-                        "------------------------------------------\n"
-                        "Procesando archivo adjunto... Aquí tienes nuestra carta con todos los detalles y precios. ¡Disfrútala! 🍽️\n"
-                        "------------------------------------------"
-                    ),
-                    "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
-                    # 💡 Reemplaza esta URL por el enlace directo (.jpg o .png) de tu carta real
-                }
-            ]
-        })
-        
-    else:
-        texto_respuesta = (
-            "❌ *[COMANDO NO RECONOCIDO]*\n"
-            "La opción ingresada no es válida.\n"
-            "📝 Escribe la palabra *MENU* para volver a desplegar la lista de opciones."
-        )
-        return jsonify({"replies": [{"text": texto_respuesta}]})
-
-if __name__ == '__main__':
-    app.run()
+            f"🕒 HORA: {hora_

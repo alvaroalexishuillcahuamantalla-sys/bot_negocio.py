@@ -7,13 +7,18 @@ app = Flask(__name__)
 def responder_cliente():
     datos = request.get_json()
     
-    # Extraemos los datos enviados desde AutoResponder para WhatsApp
-    mensaje_cliente = datos.get("message", "").strip().lower()
+    # Extraemos el mensaje y lo limpiamos de espacios y lo pasamos a minúsculas obligatoriamente
+    mensaje_recibido = datos.get("message", "")
+    if mensaje_recibido is None:
+        mensaje_recibido = ""
+        
+    mensaje_cliente = str(mensaje_recibido).strip().lower()
     telefono = datos.get("phone", "Cliente Anónimo")
     hora_actual = datetime.now().strftime("%H:%M:%S")
     
-    # --- ÁRBOL DE DECISIONES INTERACTIVO PARA WHATSAPP ---
-    if mensaje_cliente in ["hola", "buenas", "menu", "inicio", "p"]:
+    # --- ÁRBOL DE DECISIONES INTERACTIVO REFORZADO ---
+    # Esto validará "hola", "Hola", "MENU", "menu", "Buenas", etc.
+    if mensaje_cliente in ["hola", "buenas", "menu", "inicio", "p", "buenos dias", "buenas tardes"]:
         texto_respuesta = (
             "🏪 *[ASISTENTE VIRTUAL DE ATENCIÓN]*\n"
             "📊 *ESTADO:* OPERATIVO 24/7\n"
@@ -76,7 +81,6 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
     
-    # 📜 OPCIÓN 5: ENVIAR LA CARTA EN FORMATO IMAGEN REQUERIDO POR AUTORESPONDER
     elif mensaje_cliente == "5":
         return jsonify({
             "replies": [
@@ -88,7 +92,6 @@ def responder_cliente():
                         "------------------------------------------"
                     ),
                     "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
-                    # 💡 Puedes cambiar esta URL por el enlace de tu carta real cuando desees
                 }
             ]
         })

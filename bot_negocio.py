@@ -6,17 +6,19 @@ app = Flask(__name__)
 def responder_cliente():
     datos = request.get_json()
     
-    # Extraemos el mensaje del cliente de forma segura y lo limpiamos
+    # Extraemos el mensaje de forma segura
     mensaje_recibido = datos.get("message", "")
     if mensaje_recibido is None:
         mensaje_recibido = ""
         
+    # Limpiamos espacios y convertimos a minúsculas
     mensaje_cliente = str(mensaje_recibido).strip().lower()
     
-    # --- ÁRBOL DE DECISIONES DE UNA SOLA REGLA ---
+    # --- ÁRBOL DE DECISIONES ULTRA-FLEXIBLE ---
+    # Comprobamos si el número o la palabra clave están DENTRO del mensaje
     
     # Opción 1: Horarios e Ingreso
-    if mensaje_cliente == "1":
+    if "1" in mensaje_cliente:
         texto_respuesta = (
             "📍 *Saqsayki - Tu mejor experiencia*\n"
             "🕒 *HORARIOS E INGRESO*\n\n"
@@ -36,7 +38,7 @@ def responder_cliente():
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
     # Opción 2: Precios Unitarios de Juegos
-    elif mensaje_cliente == "2":
+    elif "2" in mensaje_cliente:
         texto_respuesta = (
             "💰 *PRECIOS UNITARIOS DE JUEGOS*\n\n"
             "🌊 *Juegos Acuáticos*\n"
@@ -52,7 +54,7 @@ def responder_cliente():
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
     # Opción 3: Paquetes Promocionales
-    elif mensaje_cliente == "3":
+    elif "3" in mensaje_cliente:
         texto_respuesta = (
             "🎒 *PAQUETES PROMOCIONALES*\n\n"
             "💦 *Paquete Acuático — S/ 25.00*\n"
@@ -79,7 +81,7 @@ def responder_cliente():
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
     # Opción 4: Cómo Llegar
-    elif mensaje_cliente == "4":
+    elif "4" in mensaje_cliente:
         texto_respuesta = (
             "📍 *CÓMO LLEGAR A SAQSAYKI*\n\n"
             "🏃‍♂️‍➡️ Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
@@ -96,7 +98,7 @@ def responder_cliente():
         return jsonify({"replies": [{"message": texto_respuesta}]})
     
     # Opción 5: Restaurante (Envía texto + imagen de la carta)
-    elif mensaje_cliente == "5":
+    elif "5" in mensaje_cliente:
         return jsonify({
             "replies": [
                 {
@@ -109,12 +111,11 @@ def responder_cliente():
                         "💬 Escriba *menu* para volver al inicio"
                     ),
                     "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
-                    # 💡 Reemplaza esta URL por el enlace directo de tu carta real cuando gustes
                 }
             ]
         })
         
-    # MENU PRINCIPAL: Si escriben "menu", "hola" o CUALQUIER otra cosa que no sea 1-5
+    # MENÚ PRINCIPAL: Si no contiene ningún número del 1 al 5
     else:
         texto_respuesta = (
             "¡Bienvenido(a) al *Parque Temático Saqsayki! ✨\n\n"

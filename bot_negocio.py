@@ -7,21 +7,20 @@ app = Flask(__name__)
 def responder_cliente():
     datos = request.get_json()
     
-    # Extraemos el mensaje del cliente de forma segura y lo limpiamos
     mensaje_recibido = datos.get("message", "")
     if mensaje_recibido is None:
         mensaje_recibido = ""
         
+    # Limpieza total de espacios, saltos de línea y conversión a minúsculas
     mensaje_cliente = str(mensaje_recibido).strip().lower()
     telefono = datos.get("phone", "Cliente Anónimo")
     
-    # --- ÁRBOL DE DECISIONES CON LA INFORMACIÓN REAL DE SAQSAYKI ---
+    # --- ÁRBOL DE DECISIONES DE SAQSAYKI ---
     
-    # Menú Principal
-    if mensaje_cliente in ["hola", "buenas", "menu", "inicio", "p", "buenos dias", "buenas tardes", "*", ""]:
+    # Si el cliente saluda o pide el menú
+    if mensaje_cliente in ["hola", "buenas", "menu", "inicio", "p", "buenos dias", "buenas tardes"]:
         texto_respuesta = (
-            "¡Buenas noches! ✨\n\n"
-            "Bienvenido(a) al *Parque Temático Saqsayki*\n\n"
+            "¡Bienvenido al Parque Saqsayki! ✨\n\n"
             "Vive una experiencia única llena de aventura, diversión y naturaleza.\n\n"
             "📌 *Seleccione una opción escribiendo el número:*\n\n"
             "1️⃣ Horarios e ingreso\n"
@@ -36,12 +35,12 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
-    # Opción 1: Horarios e Ingreso
+    # Opción 1: Horarios
     elif mensaje_cliente == "1":
         texto_respuesta = (
             "🕒 *HORARIOS E INGRESO*\n\n"
             "📅 Lunes a domingo (incluyendo feriados)\n"
-            "⏰ 9:30 a.m. a 5:50 p.m.\n\n"
+            "⏰ 9:30 a.m. a 5:30 p.m.\n\n"
             "🎟️ *Precios de ingreso:*\n"
             "• Adultos: S/ 7.00\n"
             "• Niños: S/ 4.00\n\n"
@@ -55,7 +54,7 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
-    # Opción 2: Precios Unitarios de Juegos
+    # Opción 2: Precios Unitarios
     elif mensaje_cliente == "2":
         texto_respuesta = (
             "💰 *PRECIOS UNITARIOS DE JUEGOS*\n\n"
@@ -71,7 +70,7 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
-    # Opción 3: Paquetes Promocionales
+    # Opción 3: Paquetes
     elif mensaje_cliente == "3":
         texto_respuesta = (
             "🎒 *PAQUETES PROMOCIONALES*\n\n"
@@ -98,14 +97,14 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
-    # Opción 4: Cómo Llegar
+    # Opción 4: Cómo llegar
     elif mensaje_cliente == "4":
         texto_respuesta = (
             "📍 *CÓMO LLEGAR A SAQSAYKI*\n\n"
             "🏃‍♂️‍➡️ Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
             "🚕 En taxi podrás llegar en aproximadamente 15 minutos desde Chicana Grande.\n\n"
             "🗺️ *Google Maps:*\n"
-            "http://maps.google.com/?q=-13.5042,-71.9791\n\n" # Puedes cambiar esta URL por tu link directo si gustas
+            "https://maps.app.goo.gl/xrwjZyXT2iBeMiUr9\n\n"
             "📞 *Taxis recomendados:*\n"
             "• 926 050 769\n"
             "• 991 972 382\n\n"
@@ -115,7 +114,7 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
     
-    # Opción 5: Restaurante + Envío Automático de la Imagen de la Carta
+    # Opción 5: Carta / Imagen
     elif mensaje_cliente == "5":
         return jsonify({
             "replies": [
@@ -129,17 +128,21 @@ def responder_cliente():
                         "💬 Escriba *menu* para volver al inicio"
                     ),
                     "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
-                    # 💡 Reemplaza esta URL de arriba por el enlace directo de la foto de tu carta real (.jpg)
                 }
             ]
         })
         
-    # En caso de que marquen algo incorrecto
+    # Si manda cualquier otra cosa, le recordamos el menú de forma sutil
     else:
         texto_respuesta = (
-            "❌ *[COMANDO NO RECONOCIDO]*\n\n"
-            "La opción ingresada no es válida.\n\n"
-            "📝 Escribe la palabra *menu* para volver a desplegar la lista de opciones del parque."
+            "¡Bienvenido(a) al *Parque Temático Saqsayki! ✨\n\n"
+            "📌 *Por favor, seleccione una opción escribiendo el número correspondiente:*\n\n"
+            "1️⃣ Horarios e ingreso\n"
+            "2️⃣ Precios unitarios de juegos\n"
+            "3️⃣ Paquetes promocionales\n"
+            "4️⃣ Cómo llegar\n"
+            "5️⃣ Restaurante 🍽️ (Ver carta completa)\n\n"
+            "📝 O escribe la palabra *menu* para reiniciar."
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 

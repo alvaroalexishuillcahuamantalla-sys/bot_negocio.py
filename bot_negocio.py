@@ -1,19 +1,7 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
-import requests
 
 app = Flask(__name__)
-
-# Configuración opcional por si deseas alertas en tu Telegram corporativo
-TOKEN_TELEGRAM = "TU_TOKEN_DE_TELEGRAM"
-CHAT_ID = "TU_CHAT_ID"
-
-def enviar_a_telegram(texto):
-    url = f"https://api.telegram.org/bot{TOKEN_TELEGRAM}/sendMessage"
-    try:
-        requests.post(url, json={"chat_id": CHAT_ID, "text": texto}, timeout=4)
-    except:
-        pass
 
 @app.route('/bot_negocio', methods=['POST'])
 def responder_cliente():
@@ -24,7 +12,7 @@ def responder_cliente():
     telefono = datos.get("phone", "Cliente Anónimo")
     hora_actual = datetime.now().strftime("%H:%M:%S")
     
-    # --- ÁRBOL DE DECISIONES INTERACTIVO CON FORMATO SOC ---
+    # --- ÁRBOL DE DECISIONES INTERACTIVO PARA WHATSAPP ---
     if mensaje_cliente in ["hola", "buenas", "menu", "inicio", "p"]:
         texto_respuesta = (
             "🏪 *[ASISTENTE VIRTUAL DE ATENCIÓN]*\n"
@@ -79,16 +67,39 @@ def responder_cliente():
 
     elif mensaje_cliente == "4":
         texto_respuesta = (
-            "👨‍💻 *[ALERTA: SOLICITUD DE ASESOR]*\n"
+            "👨‍💻 *[SOLICITUD DE ASESOR]*\n"
             "------------------------------------------\n"
             "• Asesor asignado: Conectándose...\n"
             "• Estado: En espera de atención humana.\n"
             "------------------------------------------\n"
-            "Un asesor tomará tu chat en este mismo número en unos minutos. Déjanos tu consulta armada."
+            "Un asesor tomará tu chat en este mismo número en unos minutos. Déjanos tu consulta armada de una vez."
         )
-        # Notificación al dueño por Telegram
-        alerta_dueno = (
-            f"⚠️ [ALERTA DE ATENCIÓN EN WHATSAPP]\n"
-            f"👤 CLIENTE: {telefono}\n"
-            f"⚡ ESTADO: Solicita hablar con humano.\n"
-            f"🕒 HORA: {hora_
+        return jsonify({"replies": [{"message": texto_respuesta}]})
+    
+    # 📜 OPCIÓN 5: ENVIAR LA CARTA EN FORMATO IMAGEN REQUERIDO POR AUTORESPONDER
+    elif mensaje_cliente == "5":
+        return jsonify({
+            "replies": [
+                {
+                    "message": (
+                        "📜 *[ENVÍO DE CARTA COMPLETA]*\n"
+                        "------------------------------------------\n"
+                        "Procesando archivo adjunto... Aquí tienes nuestra carta con todos los detalles y precios. ¡Disfrútala! 🍽️\n"
+                        "------------------------------------------"
+                    ),
+                    "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
+                    # 💡 Puedes cambiar esta URL por el enlace de tu carta real cuando desees
+                }
+            ]
+        })
+        
+    else:
+        texto_respuesta = (
+            "❌ *[COMANDO NO RECONOCIDO]*\n"
+            "La opción ingresada no es válida.\n"
+            "📝 Escribe la palabra *MENU* para volver a desplegar la lista de opciones."
+        )
+        return jsonify({"replies": [{"message": texto_respuesta}]})
+
+if __name__ == '__main__':
+    app.run()

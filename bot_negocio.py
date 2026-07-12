@@ -6,7 +6,6 @@ app = Flask(__name__)
 @app.route('/bot_numeros', methods=['POST'])
 def responder_numeros():
     mensaje_recibido = ""
-    
     if request.is_json:
         datos = request.get_json()
         mensaje_recibido = datos.get("message", "")
@@ -16,13 +15,12 @@ def responder_numeros():
         except Exception:
             pass
 
-    # Limpieza básica
     mensaje_cliente = str(mensaje_recibido).strip().lower()
     
-    # Extraemos quirúrgicamente el primer número del 1 al 5
+    # Buscamos el número
     busqueda = re.search(r'[1-5]', mensaje_cliente)
     if not busqueda:
-        return jsonify({"replies": []})  # Si no hay número, no responde nada
+        return jsonify({"replies": []})
         
     opcion = busqueda.group(0)
 
@@ -86,8 +84,8 @@ def responder_numeros():
             "🎒 Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
             "🚕 En taxi podrás llegar en aproximadamente 15 minutos desde Chicana Grande.\n\n"
             "🗺️ *Google Maps:*\n"
-            "https://maps.app.goo.gl/SaqsaykiParque\n\n"
-            "📞 *Taxis recomendados:*\n"
+            "http://maps.google.com/?q=Saqsayki"
+            "\n📞 *Taxis recomendados:*\n"
             "• 926 050 769\n"
             "• 991 972 382\n\n"
             "🏍️ *Tours en cuatrimoto:*\n"
@@ -116,4 +114,4 @@ def responder_numeros():
     return jsonify({"replies": [{"message": texto}]})
 
 if __name__ == '__main__':
-    app.run(port=5001)
+    app.run()

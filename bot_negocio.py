@@ -1,29 +1,35 @@
 from flask import Flask, request, jsonify
-import re
+import json
 
 app = Flask(__name__)
 
-# 🚨 CAMBIADO AQUÍ PARA RECONOCER LA RUTA DE TU AUTOPOSTER 🚨
 @app.route('/bot_negocio', methods=['POST'])
 def responder_numeros():
     mensaje_recibido = ""
+    
+    # 1. Extracción quirúrgica del mensaje original enviado por el cliente
     if request.is_json:
-        datos = request.get_json()
-        mensaje_recibido = datos.get("message", "")
+        try:
+            datos = request.get_json()
+            # Jalamos estrictamente el valor de "message" para ignorar rule_id u otros números
+            mensaje_recibido = datos.get("message", "")
+        except Exception:
+            pass
     else:
         try:
             mensaje_recibido = request.data.decode('utf-8')
         except Exception:
             pass
 
-    mensaje_cliente = str(mensaje_recibido).strip().lower()
+    if mensaje_recibido is None:
+        mensaje_recibido = ""
+
+    # 2. Limpieza extrema del texto del usuario
+    # Quitamos espacios, pasamos a minúsculas y eliminamos puntos/comas basura
+    opcion = str(mensaje_recibido).strip().lower().replace(".", "").replace(",", "")
     
-    # Buscamos el número del 1 al 5
-    busqueda = re.search(r'[1-5]', mensaje_cliente)
-    if not busqueda:
-        return jsonify({"replies": []})
-        
-    opcion = busqueda.group(0)
+    # 🚨 CLASIFICACIÓN ULTRA-ESTRICTA POR COMPARACIÓN DIRECTA 🚨
+    # Ya no usamos re.search global para que no se confunda con datos ocultos.
 
     if opcion == "1":
         texto = (
@@ -85,7 +91,7 @@ def responder_numeros():
             "🎒 Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
             "🚕 En taxi podrás llegar en aproximadamente 15 minutos desde Chicana Grande.\n\n"
             "🗺️ *Google Maps:*\n"
-            "http://maps.google.com/?q=Saqsayki"
+            "http://googleusercontent.com/maps.google.com/mapas"
             "\n📞 *Taxis recomendados:*\n"
             "• 926 050 769\n"
             "• 991 972 382\n\n"
@@ -110,6 +116,7 @@ def responder_numeros():
             ]
         })
     else:
+        # Si no coincide exactamente con 1, 2, 3, 4 o 5, responde vacío para no interferir
         return jsonify({"replies": []})
 
     return jsonify({"replies": [{"message": texto}]})

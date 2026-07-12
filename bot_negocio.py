@@ -4,15 +4,12 @@ app = Flask(__name__)
 
 @app.route('/bot_negocio', methods=['POST'])
 def responder_cliente():
-    # --- SISTEMA DE LECTURA HÍBRIDO (EVITA ERROR 415) ---
     mensaje_recibido = ""
     
-    # Intentamos leer como JSON si viene bien formateado
     if request.is_json:
         datos = request.get_json()
         mensaje_recibido = datos.get("message", "")
     else:
-        # Si AutoResponder lo envía como texto plano por error, lo capturamos aquí
         try:
             mensaje_recibido = request.data.decode('utf-8')
         except Exception:
@@ -21,13 +18,11 @@ def responder_cliente():
     if mensaje_recibido is None:
         mensaje_recibido = ""
         
-    # Limpiamos espacios y convertimos a minúsculas
     mensaje_cliente = str(mensaje_recibido).strip().lower()
     
-    # --- ÁRBOL DE DECISIONES DE SAQSAYKI ---
+    # --- ÁRBOL DE DECISIONES ORDENADO ---
     
-    # Opción 1: Horarios e Ingreso
-    if "1" in mensaje_cliente:
+    if mensaje_cliente == "1" or "1" in mensaje_cliente:
         texto_respuesta = (
             "📍 *Saqsayki - Tu mejor experiencia*\n"
             "🕒 *HORARIOS E INGRESO*\n\n"
@@ -46,8 +41,7 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
-    # Opción 2: Precios Unitarios de Juegos
-    elif "2" in mensaje_cliente:
+    elif mensaje_cliente == "2" or "2" in mensaje_cliente:
         texto_respuesta = (
             "💰 *PRECIOS UNITARIOS DE JUEGOS*\n\n"
             "🌊 *Juegos Acuáticos*\n"
@@ -62,8 +56,7 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
-    # Opción 3: Paquetes Promocionales
-    elif "3" in mensaje_cliente:
+    elif mensaje_cliente == "3" or "3" in mensaje_cliente:
         texto_respuesta = (
             "🎒 *PAQUETES PROMOCIONALES*\n\n"
             "💦 *Paquete Acuático — S/ 25.00*\n"
@@ -89,8 +82,7 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
 
-    # Opción 4: Cómo Llegar
-    elif "4" in mensaje_cliente:
+    elif mensaje_cliente == "4" or "4" in mensaje_cliente:
         texto_respuesta = (
             "📍 *CÓMO LLEGAR A SAQSAYKI*\n\n"
             "🏃‍♂️‍➡️ Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
@@ -106,8 +98,7 @@ def responder_cliente():
         )
         return jsonify({"replies": [{"message": texto_respuesta}]})
     
-    # Opción 5: Restaurante
-    elif "5" in mensaje_cliente:
+    elif mensaje_cliente == "5" or "5" in mensaje_cliente:
         return jsonify({
             "replies": [
                 {
@@ -124,7 +115,6 @@ def responder_cliente():
             ]
         })
         
-    # MENU PRINCIPAL (Si escriben menu o cualquier otra cosa)
     else:
         texto_respuesta = (
             "¡Buenas noches! ✨\n\n"

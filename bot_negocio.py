@@ -1,33 +1,24 @@
 from flask import Flask, request, jsonify
-import re
 import json
 
 app = Flask(__name__)
 
 def extraer_mensaje_crudo():
     """
-    Analiza a fondo la petición de AutoResponder para extraer el texto original del cliente
-    sin importar qué formato use la aplicación.
+    Extrae de forma segura el mensaje real que escribió el cliente
+    en WhatsApp, ignorando otras variables de AutoResponder.
     """
-    # 1. Intentar leer si viene como JSON estructurado
     if request.is_json:
         try:
             datos = request.get_json()
-            # AutoResponder suele usar "message"
             if "message" in datos and datos["message"]:
                 return str(datos["message"])
-            # Si la app envía todo el objeto serializado en otra clave, lo buscamos
-            return json.dumps(datos)
         except Exception:
             pass
 
-    # 2. Intentar leer si viene como formulario (form-data o urlencoded)
-    if request.form:
-        if "message" in request.form:
-            return str(request.form["message"])
-        return json.dumps(request.form.to_dict())
+    if request.form and "message" in request.form:
+        return str(request.form["message"])
 
-    # 3. Leer los datos crudos (en caso de texto plano)
     try:
         datos_crudos = request.data.decode('utf-8')
         if datos_crudos:
@@ -39,27 +30,15 @@ def extraer_mensaje_crudo():
 
 @app.route('/bot_negocio', methods=['POST'])
 def responder_cliente():
-    # Extraemos el texto de forma masiva y segura
+    # Extraemos el texto enviado por el cliente
     texto_sucio = extraer_mensaje_crudo()
     
-    # Limpiamos el texto pasándolo a minúsculas y quitando espacios extras
-    texto_limpio = texto_sucio.strip().lower()
+    # Limpiamos quitando espacios, pasando a minúsculas y eliminando puntos/comas basura
+    mensaje_cliente = texto_sucio.strip().lower().replace(".", "").replace(",", "")
     
-    # 🚨 EVALUACIÓN PROFESIONAL (CLASIFICACIÓN) 🚨
+    # 🚨 EVALUACIÓN ULTRA-EXACTA (Para que no se crucen las opciones) 🚨
     
-    # Buscamos de forma flexible si hay un número del 1 al 5 en el texto enviado
-    # Esto rescata el número aunque AutoResponder envíe texto o metadatos basura alrededor
-    busqueda_numero = re.search(r'[1-5]', texto_limpio)
-    
-    # Verificamos si NO hay números o si el cliente escribió una palabra de bienvenida
-    if not busqueda_numero or any(palabra in texto_limpio for palabra in ["menu", "menú", "hola", "buenas", "inicio"]):
-        # CLASIFICADO COMO TEXTO / BIENVENIDA
-        return mostrar_menu_principal()
-        
-    # CLASIFICADO COMO OPCIÓN NUMÉRICA
-    opcion = busqueda_numero.group(0)
-    
-    if opcion == "1":
+    if mensaje_cliente == "1" or mensaje_cliente.startswith("1 "):
         texto = (
             "📍 *Saqsayki - Tu mejor experiencia*\n"
             "🕒 *HORARIOS E INGRESO*\n\n"
@@ -78,7 +57,7 @@ def responder_cliente():
         )
         return generar_respuesta(texto)
         
-    elif opcion == "2":
+    elif mensaje_cliente == "2" or mensaje_cliente.startswith("2 "):
         texto = (
             "💰 *PRECIOS UNITARIOS DE JUEGOS*\n\n"
             "🌊 *Juegos Acuáticos*\n"
@@ -93,7 +72,7 @@ def responder_cliente():
         )
         return generar_respuesta(texto)
         
-    elif opcion == "3":
+    elif mensaje_cliente == "3" or mensaje_cliente.startswith("3 "):
         texto = (
             "🎒 *PAQUETES PROMOCIONALES*\n\n"
             "💦 *Paquete Acuático — S/ 25.00*\n"
@@ -119,13 +98,13 @@ def responder_cliente():
         )
         return generar_respuesta(texto)
         
-    elif opcion == "4":
+    elif mensaje_cliente == "4" or mensaje_cliente.startswith("4 "):
         texto = (
             "📍 *CÓMO LLEGAR A SAQSAYKI*\n\n"
             "🏃‍♂️‍➡️ Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
             "🚕 En taxi podrás llegar en aproximadamente 15 minutos desde Chicana Grande.\n\n"
             "🗺️ *Google Maps:*\n"
-            "https://maps.app.goo.gl/xrwjZyXT2iBeMiUr9\n\n"
+            "https://maps.google.com/?q=Saqsayki\n\n"
             "📞 *Taxis recomendados:*\n"
             "• 926 050 769\n"
             "• 991 972 382\n\n"
@@ -135,7 +114,7 @@ def responder_cliente():
         )
         return generar_respuesta(texto)
         
-    elif opcion == "5":
+    elif mensaje_cliente == "5" or mensaje_cliente.startswith("5 "):
         return jsonify({
             "replies": [
                 {
@@ -152,7 +131,10 @@ def responder_cliente():
             ]
         })
 
+    # 🚨 MANTENEMOS LO BUENO: Si escribe cualquier texto, palabra o saludo,
+    # el bot mandará SIEMPRE el menú de bienvenida por defecto.
     return mostrar_menu_principal()
+
 
 def mostrar_menu_principal():
     texto = (

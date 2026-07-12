@@ -3,7 +3,8 @@ import re
 
 app = Flask(__name__)
 
-@app.route('/bot_numeros', methods=['POST'])
+# 🚨 CAMBIADO AQUÍ PARA RECONOCER LA RUTA DE TU AUTOPOSTER 🚨
+@app.route('/bot_negocio', methods=['POST'])
 def responder_numeros():
     mensaje_recibido = ""
     if request.is_json:
@@ -17,7 +18,7 @@ def responder_numeros():
 
     mensaje_cliente = str(mensaje_recibido).strip().lower()
     
-    # Buscamos el número
+    # Buscamos el número del 1 al 5
     busqueda = re.search(r'[1-5]', mensaje_cliente)
     if not busqueda:
         return jsonify({"replies": []})

@@ -22,4 +22,4 @@ def responder_bienvenida():
     return jsonify({"replies": [{"message": texto_menu}]})
 
 if __name__ == '__main__':
-    app.run(port=5002)
+    app.run()

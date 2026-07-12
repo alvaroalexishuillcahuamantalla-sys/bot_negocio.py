@@ -7,11 +7,12 @@ app = Flask(__name__)
 def responder_cliente():
     mensaje_recibido = ""
     
-    # 1. Sistema de lectura híbrido para capturar el mensaje sin importar el formato
+    # 1. Intentamos leer en formato JSON (como lo manda AutoResponder normalmente)
     if request.is_json:
         datos = request.get_json()
         mensaje_recibido = datos.get("message", "")
     else:
+        # 2. Si AutoResponder lo manda como texto plano, lo procesamos aquí
         try:
             mensaje_recibido = request.data.decode('utf-8')
         except Exception:
@@ -20,11 +21,10 @@ def responder_cliente():
     if mensaje_recibido is None:
         mensaje_recibido = ""
         
-    # Limpieza absoluta de espacios y conversión a minúsculas
+    # Limpieza total: quitamos espacios y todo a minúsculas
     mensaje_cliente = str(mensaje_recibido).strip().lower()
     
-    # 🚨 FILTRO PRIORITARIO: Buscamos si hay un número aislado del 1 al 5 en el mensaje
-    # Usamos expresiones regulares para extraer quirúrgicamente el número
+    # 🚨 FILTRO 1: Si el mensaje contiene un número aislado del 1 al 5, va a su opción fija
     numero_encontrado = re.search(r'\b([1-5])\b', mensaje_cliente)
     
     if numero_encontrado:
@@ -117,14 +117,14 @@ def responder_cliente():
                             "¿Tienes alguna consulta? Escríbenos sin problema, estamos para ayudarte.\n\n"
                             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
                             "💬 Escriba *menu* para volver al inicio"
-                    ),
+                        ),
                         "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
                     }
                 ]
             })
 
-    # 🚨 RESPUESTA POR DEFECTO: Si el mensaje no contiene los números 1, 2, 3, 4 o 5,
-    # significa que es un saludo, un error, o la palabra "menu". Enviamos el menú completo.
+    # 🚨 FILTRO 2 (RESPUESTA POR DEFECTO): Si el mensaje es "hola", "menu", cualquier palabra 
+    # o texto que NO tenga los números del 1 al 5, mostramos obligatoriamente el MENÚ PRINCIPAL.
     return mostrar_menu_principal()
 
 

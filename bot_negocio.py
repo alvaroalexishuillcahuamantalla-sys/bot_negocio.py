@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import re
 
 app = Flask(__name__)
 
@@ -6,7 +7,7 @@ app = Flask(__name__)
 def responder_cliente():
     mensaje_recibido = ""
     
-    # Lectura híbrida para evitar errores 415
+    # Sistema híbrido para leer el formato enviado por AutoResponder
     if request.is_json:
         datos = request.get_json()
         mensaje_recibido = datos.get("message", "")
@@ -19,108 +20,110 @@ def responder_cliente():
     if mensaje_recibido is None:
         mensaje_recibido = ""
         
-    # Limpieza total del texto
+    # Limpiamos espacios y pasamos a minúsculas
     mensaje_cliente = str(mensaje_recibido).strip().lower()
     
-    # 🚨 1. PRIORIDAD ABSOLUTA: Si el cliente escribe explícitamente palabras de bienvenida, va al menú
-    if mensaje_cliente in ["hola", "buenas", "menu", "inicio", "buenos dias", "buenas tardes", "menú"]:
+    # 🚨 FILTRO 1: Si escribe explícitamente palabras para ver el menú, lo enviamos directo
+    if mensaje_cliente in ["menu", "menú", "hola", "buenas", "inicio", "buenos dias", "buenas tardes"]:
         return mostrar_menu_principal()
-        
-    # 🚨 2. DETECTOR FLEXIBLE: Busca el número sin importar si viene con puntos, emojis o espacios
-    if "1" in mensaje_cliente:
-        texto_respuesta = (
-            "📍 *Saqsayki - Tu mejor experiencia*\n"
-            "🕒 *HORARIOS E INGRESO*\n\n"
-            "📅 Lunes a domingo (incluyendo feriados)\n"
-            "⏰ 9:30 a.m. a 5:30 p.m.\n\n"
-            "🎟️ *Precios de ingreso:*\n"
-            "• Adultos: S/ 7.00\n"
-            "• Niños: S/ 4.00\n\n"
-            "✅ *El ingreso incluye:*\n"
-            "• Mano Gigante del Inca\n"
-            "• Bosque Encantado de los Duendes\n"
-            "• Mano de Choclo de Oro\n"
-            "• Trilogía Andina\n"
-            "• Diversos miradores turísticos\n\n"
-            "💬 Escriba *menu* para volver al inicio"
-        )
-        return generar_respuesta(texto_respuesta)
-        
-    elif "2" in mensaje_cliente:
-        texto_respuesta = (
-            "💰 *PRECIOS UNITARIOS DE JUEGOS*\n\n"
-            "🌊 *Juegos Acuáticos*\n"
-            "• Caminata en línea — S/ 5.00\n"
-            "• Puente acuático — S/ 5.00\n"
-            "• Tirolesa acuática — S/ 8.00\n"
-            "• Puente aéreo — S/ 8.00\n\n"
-            "⛰️ *Juegos de Altura*\n"
-            "• Columpio Extremo 'Vuelo del Cóndor' — S/ 20.00\n"
-            "• Circuito de 21 obstáculos extremos — S/ 20.00\n\n"
-            "💬 Escriba *menu* para volver al inicio"
-        )
-        return generar_respuesta(texto_respuesta)
-        
-    elif "3" in mensaje_cliente:
-        texto_respuesta = (
-            "🎒 *PAQUETES PROMOCIONALES*\n\n"
-            "💦 *Paquete Acuático — S/ 25.00*\n"
-            "• Entrada al parque\n"
-            "• Puente acuático\n"
-            "• Caminata en línea\n"
-            "• Tirolesa acuática\n"
-            "• Puente aéreo\n\n"
-            "🧗 *Paquete Aventurero — S/ 35.00*\n"
-            "• Entrada al parque\n"
-            "• Columpio extremo\n"
-            "• Circuito de 21 obstáculos\n"
-            "• Puente acuático\n\n"
-            "🔥 *Paquete Full — S/ 45.00*\n"
-            "• Entrada al parque\n"
-            "• Columpio extremo\n"
-            "• Circuito de 21 obstáculos\n"
-            "• Tirolesa acuática\n"
-            "• Caminata en línea\n"
-            "• Puente aéreo\n"
-            "• Puente acuático\n\n"
-            "💬 Escriba *menu* para volver al inicio"
-        )
-        return generar_respuesta(texto_respuesta)
-        
-    elif "4" in mensaje_cliente:
-        texto_respuesta = (
-            "📍 *CÓMO LLEGAR A SAQSAYKI*\n\n"
-            "🏃‍♂️‍➡️ Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
-            "🚕 En taxi podrás llegar en aproximadamente 15 minutos desde Chicana Grande.\n\n"
-            "🗺️ *Google Maps:*\n"
-            "https://maps.app.goo.gl/xrwjZyXT2iBeMiUr9\n\n"
-            "📞 *Taxis recomendados:*\n"
-            "• 926 050 769\n"
-            "• 991 972 382\n\n"
-            "🏍️ *Tours en cuatrimoto:*\n"
-            "• 942 208 931\n\n"
-            "💬 Escriba *menu* para volver al inicio"
-        )
-        return generar_respuesta(texto_respuesta)
-        
-    elif "5" in mensaje_cliente:
-        return jsonify({
-            "replies": [
-                {
-                    "message": (
-                        "🍽️ *CARTA DEL RESTAURANTE SAQSAYKI*\n\n"
-                        "Aquí está nuestra carta completa con todos nuestros platillos.\n\n"
-                        "📌 *Nota:* Solo realizamos reservas para días festivos y eventos especiales.\n\n"
-                        "¿Tienes alguna consulta? Escríbenos sin problema, estamos para ayudarte.\n\n"
-                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                        "💬 Escriba *menu* para volver al inicio"
-                    ),
-                    "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
-                }
-            ]
-        })
+
+    # 🚨 FILTRO 2: Buscamos si hay un número del 1 al 5 aislado en el mensaje usando Regex nativo
+    # Esto evita que textos que contengan un "1" por error (como una dirección o un saludo largo) activen la opción
+    numero_encontrado = re.search(r'\b([1-5])\b', mensaje_cliente)
     
-    # 🚨 3. RESPUESTA DE RESPALDO: Si no contiene ningún número del 1 al 5, manda el menú
+    if numero_encontrado:
+        opcion = numero_encontrado.group(1)
+        
+        if opcion == "1":
+            return generar_respuesta(
+                "📍 *Saqsayki - Tu mejor experiencia*\n"
+                "🕒 *HORARIOS E INGRESO*\n\n"
+                "📅 Lunes a domingo (incluyendo feriados)\n"
+                "⏰ 9:30 a.m. a 5:30 p.m.\n\n"
+                "🎟️ *Precios de ingreso:*\n"
+                "• Adultos: S/ 7.00\n"
+                "• Niños: S/ 4.00\n\n"
+                "✅ *El ingreso incluye:*\n"
+                "• Mano Gigante del Inca\n"
+                "• Bosque Encantado de los Duendes\n"
+                "• Mano de Choclo de Oro\n"
+                "• Trilogía Andina\n"
+                "• Diversos miradores turísticos\n\n"
+                "💬 Escriba *menu* para volver al inicio"
+            )
+            
+        elif opcion == "2":
+            return generar_respuesta(
+                "💰 *PRECIOS UNITARIOS DE JUEGOS*\n\n"
+                "🌊 *Juegos Acuáticos*\n"
+                "• Caminata en línea — S/ 5.00\n"
+                "• Puente acuático — S/ 5.00\n"
+                "• Tirolesa acuática — S/ 8.00\n"
+                "• Puente aéreo — S/ 8.00\n\n"
+                "⛰️ *Juegos de Altura*\n"
+                "• Columpio Extremo 'Vuelo del Cóndor' — S/ 20.00\n"
+                "• Circuito de 21 obstáculos extremos — S/ 20.00\n\n"
+                "💬 Escriba *menu* para volver al inicio"
+            )
+            
+        elif opcion == "3":
+            return generar_respuesta(
+                "🎒 *PAQUETES PROMOCIONALES*\n\n"
+                "💦 *Paquete Acuático — S/ 25.00*\n"
+                "• Entrada al parque\n"
+                "• Puente acuático\n"
+                "• Caminata en línea\n"
+                "• Tirolesa acuática\n"
+                "• Puente aéreo\n\n"
+                "🧗 *Paquete Aventurero — S/ 35.00*\n"
+                "• Entrada al parque\n"
+                "• Columpio extremo\n"
+                "• Circuito de 21 obstáculos\n"
+                "• Puente acuático\n\n"
+                "🔥 *Paquete Full — S/ 45.00*\n"
+                "• Entrada al parque\n"
+                "• Columpio extremo\n"
+                "• Circuito de 21 obstáculos\n"
+                "• Tirolesa acuática\n"
+                "• Caminata en línea\n"
+                "• Puente aéreo\n"
+                "• Puente acuático\n\n"
+                "💬 Escriba *menu* para volver al inicio"
+            )
+            
+        elif opcion == "4":
+            return generar_respuesta(
+                "📍 *CÓMO LLEGAR A SAQSAYKI*\n\n"
+                "🏃‍♂️‍➡️ Nos encontramos aproximadamente a 30 minutos a pie desde la Chicana Grande.\n\n"
+                "🚕 En taxi podrás llegar en aproximadamente 15 minutos desde Chicana Grande.\n\n"
+                "🗺️ *Google Maps:*\n"
+                "https://maps.app.goo.gl/xrwjZyXT2iBeMiUr9\n\n"
+                "📞 *Taxis recomendados:*\n"
+                "• 926 050 769\n"
+                "• 991 972 382\n\n"
+                "🏍️ *Tours en cuatrimoto:*\n"
+                "• 942 208 931\n\n"
+                "💬 Escriba *menu* para volver al inicio"
+            )
+            
+        elif opcion == "5":
+            return jsonify({
+                "replies": [
+                    {
+                        "message": (
+                            "🍽️ *CARTA DEL RESTAURANTE SAQSAYKI*\n\n"
+                            "Aquí está nuestra carta completa con todos nuestros platillos.\n\n"
+                            "📌 *Nota:* Solo realizamos reservas para días festivos y eventos especiales.\n\n"
+                            "¿Tienes alguna consulta? Escríbenos sin problema, estamos para ayudarte.\n\n"
+                            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                            "💬 Escriba *menu* para volver al inicio"
+                        ),
+                        "image": "https://i.ibb.co/6w2zX9q/carta-ejemplo.jpg" 
+                    }
+                ]
+            })
+
+    # 🚨 FILTRO 3: Si el mensaje es cualquier otra cosa que no sea un número del 1 al 5, manda el Menú Principal
     return mostrar_menu_principal()
 
 
